@@ -8,7 +8,8 @@ import OptionModal from './OptionModal';
 export default class IndecisionApp extends Component {
   state = {
     options: [],
-    selectedOption: undefined
+    selectedOption: undefined,
+    updated: false
   };
 
   handlePick = () => { 
@@ -18,16 +19,16 @@ export default class IndecisionApp extends Component {
   }
 
   handleDeleteOptions = () => {
-    this.setState(() => ({options: []}));
+    this.setState(() => ({updated: true, options: []}));
   }
 
   handleClearSelectedOption = () => {
-    this.setState(() => ({ selectedOption: undefined}));
+    this.setState(() => ({ updated: true, selectedOption: undefined}));
   }
 
   handleDeleteOption = (optionToRemove) => {
     this.setState(prevState => {
-      return {options: prevState.options.filter(option => {
+      return {updated: true, options: prevState.options.filter(option => {
         return optionToRemove !== option
       })};
     });
@@ -40,7 +41,25 @@ export default class IndecisionApp extends Component {
       return 'The option already exists';
     }
 
-    this.setState(prevState => ({options: prevState.options.concat(option)}));
+    this.setState(prevState => ({updated: true, options: prevState.options.concat(option)}));
+  }
+
+  componentDidMount() {
+    try {
+      const json = localStorage.getItem('options');
+      const options = JSON.parse(json);
+      if(options) {
+        this.setState(() => ({options}));
+      }
+    } catch(e) {}
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if(this.state.updated) {
+      const json = JSON.stringify(this.state.options);
+      localStorage.setItem('options', json);
+      this.setState(() => ({updated: false}));
+    }
   }
 
   render() {
